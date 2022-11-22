@@ -1,0 +1,14 @@
+
+**.DS_Store
+**.log
+
+./analyzer/data/malware/*
+./analyzer/exports/*
+./analyzer/ghidra_done/*
+./analyzer/ghidra_fail/*
+./analyzer/instances/*
+./analyzer/log/*
+./analyzer/projects/*
+
+./output_JSONs/*
+./to_be_analyzed/*
