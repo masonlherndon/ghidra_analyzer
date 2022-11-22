@@ -31,6 +31,11 @@ run:
 
 ######## UTILITIES ########
 
+test:
+	make clean-all
+	make load-test-binaries
+	make run
+
 clean-all:
 	make clean-analyzer
 	rm -rf ./output_JSONs/*

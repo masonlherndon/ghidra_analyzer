@@ -5,7 +5,7 @@ import datetime
 import time
 import subprocess
 import signal
-import sys
+#import sys
 import shutil
 from subprocess import DEVNULL
 
@@ -14,8 +14,8 @@ from subprocess import DEVNULL
 
 Change instance Directory and log directory to run on another instance:
 '''
-# Directories
-# list of items to ignore when scanning directory
+
+# Input
 DATA_DIRECTORY = './data/malware'  # dataset root directory
 
 # Ghidra
