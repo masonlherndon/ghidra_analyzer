@@ -33,7 +33,7 @@ log_file = open(LOG_DIR, "a+")
 
 # Settings
 BATCH_SIZE = 1
-MAX_INSTANCES = 2  # Maximum allowed instances
+MAX_INSTANCES = 3  # Maximum allowed instances
 NEW_INSTANCES = MAX_INSTANCES  # Able to be modified to change max_instances (Modified by script, don't edit)
 INSTANCE_TIMEOUT = BATCH_SIZE * 5  # Number of minutes before process is killed
 
