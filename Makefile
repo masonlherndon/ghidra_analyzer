@@ -35,6 +35,7 @@ test:
 	make clean-all
 	make load-test-binaries
 	make run
+	make decompress
 
 clean-all:
 	make clean-analyzer

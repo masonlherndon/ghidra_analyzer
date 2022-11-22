@@ -15,12 +15,23 @@ from subprocess import DEVNULL
 Change instance Directory and log directory to run on another instance:
 '''
 
+###############################################################################
+
+# Settings
+BATCH_SIZE = 1  # Number of binaries per batch
+MAX_INSTANCES = 1   # Maximum allowed instances
+MAX_CPU_PER_INSTANCE = 2
+INSTANCE_TIMEOUT = BATCH_SIZE * 5   # Number of minutes before process is killed
+NEW_INSTANCES = MAX_INSTANCES   # Able to be modified to change max_instances (Modified by script, don't edit)
+
+ENABLE_DECOMPILATION = True
+
 # Input
-DATA_DIRECTORY = './data/malware'  # dataset root directory
+DATA_DIRECTORY = "./data/malware"  # dataset root directory
 
 # Ghidra
-GHIDRA_BINARY = "./ghidra/support/analyzeHeadless "  # Ghidra Headless dir
-GHIDRA_PARAMS = " headless -readOnly -recursive -max-cpu 4 -import "  # Ghidra parameters
+GHIDRA_HEADLESS = "./ghidra/support/analyzeHeadless"  # Ghidra Headless dir
+GHIDRA_PARAMS = f" headless -readOnly -recursive -max-cpu {MAX_CPU_PER_INSTANCE} -import "  # Ghidra parameters
 POST_SCRIPT = "./extract_functions.py "  # Ghidra Headless plugin script
 PRE_SCRIPT = "./disable_decompilation.py"
 COMPLETE_DIR = "./ghidra_done/"
@@ -31,16 +42,12 @@ GHIDRA_LOG = "log/ghidra%d.log"  # Ghidra log locations
 LOG_DIR = "./log/ghidra_batches.log"  # ghidra run log
 log_file = open(LOG_DIR, "a+")
 
-# Settings
-BATCH_SIZE = 1
-MAX_INSTANCES = 3  # Maximum allowed instances
-NEW_INSTANCES = MAX_INSTANCES  # Able to be modified to change max_instances (Modified by script, don't edit)
-INSTANCE_TIMEOUT = BATCH_SIZE * 5  # Number of minutes before process is killed
-
 # Timing Measurements
 T_FILES_PROCESSED = 0
 T_START_TIME = datetime.datetime.now()
 T_TOTAL_FILES = 0
+
+###############################################################################
 
 # Setup dict for processes. Each key represents one potential "slot"
 # Key: index Value: (subprocess object, num files, start time)
@@ -245,26 +252,28 @@ def delete_dir(path, err_msg, delete_contents=False):
 def launch_ghidra(instance_num, num_files):
     instance_dir = os.path.join("instances", "instance%d" % instance_num)
     log("Instance dir is %s\n" % instance_dir)
-    ghidra_proj_dir = "projects/gproj%d" % instance_num
+    #ghidra_proj_dir = "projects/gproj%d" % instance_num
+    ghidra_proj_dir = f"projects/gproj{instance_num}"
 
     # Args: Ghidra Project Directory           |                  Folder to do analysis
     #args = GHIDRA_BINARY + ghidra_proj_dir + GHIDRA_PARAMS + instance_dir + " -preScript " + PRE_SCRIPT + \
     #       " -postScript " + POST_SCRIPT + "-log " + (GHIDRA_LOG % instance_num)
 
-    # WARNING (from Mason): THIS HACKY FIX ONLY WORKS FOR A BATCH SIZE OF 1
+    ######## WARNING (from Mason): THIS HACKY FIX ONLY WORKS FOR A BATCH SIZE OF 1
     dir_dict = search_directory_tree(instance_dir)
     cur_filename = ""
     for _, files in dir_dict.items():
         cur_filename = files[0]
-
     cur_binary_filepath = f"{os.getcwd()}/{instance_dir}/data/malware/{cur_filename}"
     file_info_str = subprocess.run(["file", cur_binary_filepath], stdout=subprocess.PIPE).stdout.decode("utf-8")
-
     file_bit_version = "32"
     if "PE32+" in file_info_str:
         file_bit_version = "64"
+    ########
 
-    args = GHIDRA_BINARY + ghidra_proj_dir + GHIDRA_PARAMS + instance_dir + f" -processor x86:LE:{file_bit_version}:default" + " -preScript " + PRE_SCRIPT + \
+    args = f"{GHIDRA_HEADLESS} "
+
+    args = GHIDRA_HEADLESS + " " + ghidra_proj_dir + GHIDRA_PARAMS + instance_dir + f" -processor x86:LE:{file_bit_version}:default" + " -preScript " + PRE_SCRIPT + \
            " -postScript " + POST_SCRIPT + "-log " + (GHIDRA_LOG % instance_num)
 
     args = args.split(" ")
