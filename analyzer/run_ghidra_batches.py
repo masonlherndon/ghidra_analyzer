@@ -31,8 +31,8 @@ DATA_DIRECTORY = "./data/malware"  # dataset root directory
 
 # Ghidra
 GHIDRA_HEADLESS = "./ghidra/support/analyzeHeadless"  # Ghidra Headless dir
-GHIDRA_PARAMS = f" headless -readOnly -recursive -max-cpu {MAX_CPU_PER_INSTANCE} -import "  # Ghidra parameters
-POST_SCRIPT = "./extract_functions.py "  # Ghidra Headless plugin script
+GHIDRA_PARAMS = f"headless -readOnly -recursive -max-cpu {MAX_CPU_PER_INSTANCE} -import"  # Ghidra parameters
+POST_SCRIPT = "./extract_functions.py"  # Ghidra Headless plugin script
 PRE_SCRIPT = "./disable_decompilation.py"
 COMPLETE_DIR = "./ghidra_done/"
 ERR_DIR = "./ghidra_fail/"
@@ -124,7 +124,7 @@ def main():
                 MAX_INSTANCES -= 1
                 log("Current running instances: %d/%d\n" % (MAX_INSTANCES, NEW_INSTANCES), True)
 
-    log("\n\nExecution has finished. No further processes.\n\n", True)
+    log("\n\nWaiting for final batches to complete.\n\n", True)
     for i, proc in ghidra_processes.items():
         if proc is None or proc[0] is None:
             continue
@@ -250,14 +250,9 @@ def delete_dir(path, err_msg, delete_contents=False):
 
 
 def launch_ghidra(instance_num, num_files):
-    instance_dir = os.path.join("instances", "instance%d" % instance_num)
-    log("Instance dir is %s\n" % instance_dir)
-    #ghidra_proj_dir = "projects/gproj%d" % instance_num
+    instance_dir = os.path.join("instances", f"instance{instance_num}") # this is probably overkill
+    log(f"Instance dir is {instance_dir}\n")
     ghidra_proj_dir = f"projects/gproj{instance_num}"
-
-    # Args: Ghidra Project Directory           |                  Folder to do analysis
-    #args = GHIDRA_BINARY + ghidra_proj_dir + GHIDRA_PARAMS + instance_dir + " -preScript " + PRE_SCRIPT + \
-    #       " -postScript " + POST_SCRIPT + "-log " + (GHIDRA_LOG % instance_num)
 
     ######## WARNING (from Mason): THIS HACKY FIX ONLY WORKS FOR A BATCH SIZE OF 1
     dir_dict = search_directory_tree(instance_dir)
@@ -269,18 +264,20 @@ def launch_ghidra(instance_num, num_files):
     file_bit_version = "32"
     if "PE32+" in file_info_str:
         file_bit_version = "64"
+    arch_info = f"x86:LE:{file_bit_version}:default"
     ########
 
-    args = f"{GHIDRA_HEADLESS} "
 
-    args = GHIDRA_HEADLESS + " " + ghidra_proj_dir + GHIDRA_PARAMS + instance_dir + f" -processor x86:LE:{file_bit_version}:default" + " -preScript " + PRE_SCRIPT + \
-           " -postScript " + POST_SCRIPT + "-log " + (GHIDRA_LOG % instance_num)
+    args = f"{GHIDRA_HEADLESS} {ghidra_proj_dir} {GHIDRA_PARAMS} {instance_dir} -processor {arch_info} -postScript {POST_SCRIPT} -log {GHIDRA_LOG % instance_num}"
+
+    args = f"{GHIDRA_HEADLESS} {ghidra_proj_dir} {GHIDRA_PARAMS} {instance_dir} -processor {arch_info} -preScript {PRE_SCRIPT} -postScript {POST_SCRIPT} -log {GHIDRA_LOG % instance_num}"
 
     args = args.split(" ")
-    log("Started subprocess number %d" % instance_num)
+    log(f"Started subprocess number {instance_num}")
+
 
     # Run Ghidra (and ignore SIGINTs)
-    #print(args)
+    print(args)
     return (subprocess.Popen(args,
                              preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),
                              stdout=DEVNULL, stderr=DEVNULL), num_files, datetime.datetime.now())
