@@ -1,0 +1,3 @@
+These files produce near identical output:
+    MOTIF_2b35c299c96d17a1d4b09092b09bf692
+    MOTIF_21c95dc8989cfa8fc58ecdf7a622f31c

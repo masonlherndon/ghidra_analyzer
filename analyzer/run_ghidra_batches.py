@@ -19,8 +19,8 @@ Change instance Directory and log directory to run on another instance:
 
 # Settings
 BATCH_SIZE = 1  # Number of binaries per batch
-MAX_INSTANCES = 1   # Maximum allowed instances
-MAX_CPU_PER_INSTANCE = 2
+MAX_INSTANCES = 3   # Maximum allowed instances
+MAX_CPU_PER_INSTANCE = 4
 INSTANCE_TIMEOUT = BATCH_SIZE * 5   # Number of minutes before process is killed
 NEW_INSTANCES = MAX_INSTANCES   # Able to be modified to change max_instances (Modified by script, don't edit)
 
@@ -268,16 +268,16 @@ def launch_ghidra(instance_num, num_files):
     ########
 
 
-    args = f"{GHIDRA_HEADLESS} {ghidra_proj_dir} {GHIDRA_PARAMS} {instance_dir} -processor {arch_info} -postScript {POST_SCRIPT} -log {GHIDRA_LOG % instance_num}"
-
+    #args = f"{GHIDRA_HEADLESS} {ghidra_proj_dir} {GHIDRA_PARAMS} {instance_dir} -processor {arch_info} -postScript {POST_SCRIPT} -log {GHIDRA_LOG % instance_num}"
     args = f"{GHIDRA_HEADLESS} {ghidra_proj_dir} {GHIDRA_PARAMS} {instance_dir} -processor {arch_info} -preScript {PRE_SCRIPT} -postScript {POST_SCRIPT} -log {GHIDRA_LOG % instance_num}"
+
 
     args = args.split(" ")
     log(f"Started subprocess number {instance_num}")
 
 
     # Run Ghidra (and ignore SIGINTs)
-    print(args)
+    #print(args)
     return (subprocess.Popen(args,
                              preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_IGN),
                              stdout=DEVNULL, stderr=DEVNULL), num_files, datetime.datetime.now())
